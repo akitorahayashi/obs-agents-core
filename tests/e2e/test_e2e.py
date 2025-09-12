@@ -4,13 +4,12 @@ import pytest
 pytestmark = pytest.mark.asyncio
 
 
-async def test_index_page_loads(page_url: str):
+async def test_health_check(page_url: str):
     """
-    Performs an end-to-end test on the index page ('/').
+    Test the health check endpoint.
     """
     async with httpx.AsyncClient(timeout=30) as client:
-        response = await client.get(page_url)
+        response = await client.get(f"{page_url}health/")
 
     assert response.status_code == 200
-    assert "<h1>Welcome to your new Django project!</h1>" in response.text
-    assert "<title>Django Project</title>" in response.text
+    assert response.json() == {"status": "ok"}

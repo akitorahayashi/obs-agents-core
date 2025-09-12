@@ -1,5 +1,5 @@
 [project]
-name = "dj-site-tmpl"
+name = "obs-agents-core"
 version = "0.1.0"
 description = "A comprehensive Django project template."
 authors = [{ name = "akitorahayashi", email = "atora.has75@gmail.com" }]
@@ -11,6 +11,8 @@ dependencies = [
     "gunicorn>=22.0.0,<23.0.0",
     "dj-database-url>=2.2.0,<3.0.0",
     "psycopg2-binary>=2.9.10",
+    "djangorestframework>=3.15.0,<4.0.0",
+    "django-cors-headers>=4.3.0,<5.0.0",
 ]
 
 [dependency-groups]

@@ -57,12 +57,12 @@ def app_container() -> DockerCompose:
     ) as compose:
         # Get the test port from environment variable
         host_port = os.getenv("TEST_PORT", "8002")
-        # Verify that nginx service is running
-        nginx_container = compose.get_container("nginx")
-        assert nginx_container is not None, "nginx container could not be found."
+        # Verify that api service is running
+        api_container = compose.get_container("api")
+        assert api_container is not None, "api container could not be found."
 
         # Construct the health check URL
-        health_check_url = f"http://localhost:{host_port}/"
+        health_check_url = f"http://localhost:{host_port}/health/"
 
         # Wait for the service to be healthy
         _wait_for_service(health_check_url, timeout=120, interval=5)
