@@ -39,9 +39,9 @@ TEST_PROJECT_NAME := $(PROJECT_NAME)-test
 # Docker Compose Commands
 # ==============================================================================
 
-DEV_COMPOSE := $(DOCKER_CMD) compose -f docker-compose.yml -f docker-compose.dev.override.yml --project-name $(DEV_PROJECT_NAME)
+DEV_COMPOSE := $(DOCKER_CMD) compose -f docker-compose.yml --project-name $(DEV_PROJECT_NAME)
 PROD_COMPOSE := $(DOCKER_CMD) compose -f docker-compose.yml --project-name $(PROD_PROJECT_NAME)
-TEST_COMPOSE := $(DOCKER_CMD) compose -f docker-compose.yml -f docker-compose.test.override.yml --project-name $(TEST_PROJECT_NAME)
+TEST_COMPOSE := $(DOCKER_CMD) compose -f docker-compose.yml -f docker-compose.override.yml --project-name $(TEST_PROJECT_NAME)
 
 # ==============================================================================
 # HELP

@@ -26,8 +26,15 @@ echo "Database is ready."
 
 # Apply database migrations
 echo "Applying database migrations..."
-python manage.py migrate --noinput
+if [ -f /app/.venv/bin/python ]; then
+    /app/.venv/bin/python manage.py migrate --noinput
+else
+    echo "Using PATH python (venv not found at expected location)"
+    python manage.py migrate --noinput
+fi
 
 # Start the API server with Gunicorn
 echo "Starting API server..."
-exec python -m gunicorn config.wsgi:application --bind 0.0.0.0:8000
+# System Python has gunicorn installed via Dockerfile, so use it directly
+echo "Using system gunicorn (installed via Dockerfile)"
+exec gunicorn config.wsgi:application --bind 0.0.0.0:8000

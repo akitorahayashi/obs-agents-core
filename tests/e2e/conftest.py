@@ -43,7 +43,7 @@ def app_container() -> DockerCompose:
     load_dotenv(".env")
     compose_files = [
         "docker-compose.yml",
-        "docker-compose.test.override.yml",
+        "docker-compose.override.yml",
     ]
 
     # Find the project root by looking for a known file, e.g., pyproject.toml
