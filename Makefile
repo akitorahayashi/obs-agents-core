@@ -114,13 +114,6 @@ rebuild: ## Rebuild services, pulling base images, without cache, and restart
 	@echo "Rebuilding all DEV services with --no-cache and --pull..."
 	@$(DEV_COMPOSE) up -d --build --no-cache --pull always
 
-.PHONY: clean
-clean: ## Remove all generated files and stop all containers
-	@echo "Cleaning up project..."
-	@$(DEV_COMPOSE) down -v --remove-orphans
-	@$(PROD_COMPOSE) down -v --remove-orphans
-	@echo "Cleanup complete."
-
 .PHONY: logs
 logs: ## Show and follow dev container logs
 	@echo "Showing DEV logs..."
@@ -216,6 +209,17 @@ e2e-test: ## Run end-to-end tests against a live application stack
 	@echo "Running end-to-end tests..."
 	@python -m pytest tests/e2e -v -s
 
+# ==============================================================================
+# CLEANUP
+# ==============================================================================
 
+.PHONY: clean
+clean: ## Remove __pycache__ and .venv to make project lightweight
+	@echo "🧹 Cleaning up project..."
+	@find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+	@rm -rf .venv
+	@rm -rf .pytest_cache
+	@rm -rf .ruff_cache
+	@echo "✅ Cleanup completed"
 
 
