@@ -39,9 +39,9 @@ TEST_PROJECT_NAME := $(PROJECT_NAME)-test
 # Docker Compose Commands
 # ==============================================================================
 
-DEV_COMPOSE := $(DOCKER_CMD) compose -f docker-compose.yml -f docker-compose.dev.override.yml --project-name $(DEV_PROJECT_NAME)
+DEV_COMPOSE := $(DOCKER_CMD) compose -f docker-compose.yml --project-name $(DEV_PROJECT_NAME)
 PROD_COMPOSE := $(DOCKER_CMD) compose -f docker-compose.yml --project-name $(PROD_PROJECT_NAME)
-TEST_COMPOSE := $(DOCKER_CMD) compose -f docker-compose.yml -f docker-compose.test.override.yml --project-name $(TEST_PROJECT_NAME)
+TEST_COMPOSE := $(DOCKER_CMD) compose -f docker-compose.yml -f docker-compose.override.yml --project-name $(TEST_PROJECT_NAME)
 
 # ==============================================================================
 # HELP
@@ -114,22 +114,15 @@ rebuild: ## Rebuild services, pulling base images, without cache, and restart
 	@echo "Rebuilding all DEV services with --no-cache and --pull..."
 	@$(DEV_COMPOSE) up -d --build --no-cache --pull always
 
-.PHONY: clean
-clean: ## Remove all generated files and stop all containers
-	@echo "Cleaning up project..."
-	@$(DEV_COMPOSE) down -v --remove-orphans
-	@$(PROD_COMPOSE) down -v --remove-orphans
-	@echo "Cleanup complete."
-
 .PHONY: logs
 logs: ## Show and follow dev container logs
 	@echo "Showing DEV logs..."
 	@$(DEV_COMPOSE) logs -f
 
 .PHONY: shell
-shell: ## Start a shell inside the dev 'web' container
-	@echo "Opening shell in dev web container..."
-	@$(DEV_COMPOSE) exec web /bin/bash || \
+shell: ## Start a shell inside the dev 'api' container
+	@echo "Opening shell in dev api container..."
+	@$(DEV_COMPOSE) exec api /bin/bash || \
 		(echo "Failed to open shell. Is the container running? Try 'make up'" && exit 1)
 
 # ==============================================================================
@@ -138,27 +131,27 @@ shell: ## Start a shell inside the dev 'web' container
 
 .PHONY: makemigrations
 makemigrations: ## [DEV] Create new migration files
-	@$(DEV_COMPOSE) exec web python manage.py makemigrations
+	@$(DEV_COMPOSE) exec api python manage.py makemigrations
 
 .PHONY: migrate
 migrate: ## [DEV] Run database migrations
 	@echo "Running DEV database migrations..."
-	@$(DEV_COMPOSE) exec web python manage.py migrate
+	@$(DEV_COMPOSE) exec api python manage.py migrate
 
 .PHONY: superuser
 superuser: ## [DEV] Create a Django superuser
 	@echo "Creating DEV superuser..."
-	@$(DEV_COMPOSE) exec web python manage.py createsuperuser
+	@$(DEV_COMPOSE) exec api python manage.py createsuperuser
 
 .PHONY: migrate-prod
 migrate-prod: ## [PROD] Run database migrations in production-like environment
 	@echo "Running PROD-like database migrations..."
-	@$(PROD_COMPOSE) exec web python manage.py migrate
+	@$(PROD_COMPOSE) exec api python manage.py migrate
 
 .PHONY: superuser-prod
 superuser-prod: ## [PROD] Create a Django superuser in production-like environment
 	@echo "Creating PROD-like superuser..."
-	@$(PROD_COMPOSE) exec web python manage.py createsuperuser
+	@$(PROD_COMPOSE) exec api python manage.py createsuperuser
 
 # ==============================================================================
 # CODE QUALITY 
@@ -201,7 +194,7 @@ build-test: ## Build Docker image and run smoke tests in clean environment
 	@$(DOCKER_CMD) run --rm \
 		--env-file .env \
 		-v $(CURDIR)/tests:/app/tests \
-		-v $(CURDIR)/apps:/app/apps \
+		-v $(CURDIR)/api:/app/api \
 		-v $(CURDIR)/config:/app/config \
 		-v $(CURDIR)/manage.py:/app/manage.py \
 		-v $(CURDIR)/pyproject.toml:/app/pyproject.toml \
@@ -216,6 +209,17 @@ e2e-test: ## Run end-to-end tests against a live application stack
 	@echo "Running end-to-end tests..."
 	@python -m pytest tests/e2e -v -s
 
+# ==============================================================================
+# CLEANUP
+# ==============================================================================
 
+.PHONY: clean
+clean: ## Remove __pycache__ and .venv to make project lightweight
+	@echo "🧹 Cleaning up project..."
+	@find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+	@rm -rf .venv
+	@rm -rf .pytest_cache
+	@rm -rf .ruff_cache
+	@echo "✅ Cleanup completed"
 
 

@@ -26,14 +26,23 @@ echo "Database is ready."
 
 # Apply database migrations
 echo "Applying database migrations..."
-python manage.py migrate --noinput
-
-# Collect static files if required
-if [ "${COLLECT_STATIC:-0}" = "1" ]; then
-    echo "Collecting static files..."
-    python manage.py collectstatic --noinput
+if [ -f /app/.venv/bin/python ]; then
+    /app/.venv/bin/python manage.py migrate --noinput
+else
+    echo "Using PATH python (venv not found at expected location)"
+    python manage.py migrate --noinput
 fi
 
-# Start the application with Gunicorn for production
-echo "Starting Gunicorn server..."
-exec python -m gunicorn config.wsgi:application --bind 0.0.0.0:8000
+# Start the API server with Gunicorn
+echo "Starting API server..."
+# System Python has gunicorn installed via Dockerfile, so use it directly
+echo "Using system gunicorn (installed via Dockerfile)"
+PORT="${PORT:-8000}"
+WORKERS="${GUNICORN_WORKERS:-2}"
+THREADS="${GUNICORN_THREADS:-4}"
+exec gunicorn config.wsgi:application \
+  --bind 0.0.0.0:"${PORT}" \
+  --workers "${WORKERS}" \
+  --threads "${THREADS}" \
+  --access-logfile - \
+  --error-logfile -

@@ -31,6 +31,12 @@ RUN apt-get update && apt-get install -y postgresql-client curl && rm -rf /var/l
 RUN --mount=type=cache,target=/root/.cache \
     uv sync
 
+# Copy application code for testing
+COPY manage.py .
+COPY api/ ./api/
+COPY config/ ./config/
+COPY pyproject.toml .
+
 
 # ==============================================================================
 # Stage 3: Production Dependencies
@@ -52,28 +58,38 @@ FROM python:3.12-slim AS development
 # Install PostgreSQL client and development tools
 RUN apt-get update && apt-get install -y postgresql-client curl && rm -rf /var/lib/apt/lists/*
 
+# Install uv and sync packages to system Python as fallback
+RUN --mount=type=cache,target=/root/.cache \
+    pip install uv
+
+WORKDIR /app
+
+# Copy dependency files
+COPY pyproject.toml uv.lock ./
+
+# Install packages to both venv and system Python for reliability
+RUN --mount=type=cache,target=/root/.cache \
+    uv sync && \
+    uv pip install --system django djangorestframework gunicorn psycopg2-binary python-dotenv dj-database-url django-cors-headers
+
 # Create a non-root user for development
 RUN groupadd -r appgroup && useradd -r -g appgroup -d /home/appuser -m appuser
 
-WORKDIR /app
-RUN chown appuser:appgroup /app
-
-# Copy the development virtual environment from dev-deps stage
-COPY --from=dev-deps /app/.venv ./.venv
+# Change ownership of app directory to appuser
+RUN chown -R appuser:appgroup /app
 
 # Set the PATH to include the venv's bin directory
 ENV PATH="/app/.venv/bin:${PATH}"
 
 # Copy application code
 COPY --chown=appuser:appgroup manage.py .
-COPY --chown=appuser:appgroup apps/ ./apps/
+COPY --chown=appuser:appgroup api/ ./api/
 COPY --chown=appuser:appgroup config/ ./config/
-COPY --chown=appuser:appgroup pyproject.toml .
 COPY --chown=appuser:appgroup entrypoint.sh .
 
+# Change back to root to set permissions, then switch back
+USER root
 RUN chmod +x entrypoint.sh
-
-# Switch to non-root user
 USER appuser
 
 EXPOSE 8000
@@ -108,7 +124,7 @@ ENV PATH="/app/.venv/bin:${PATH}"
 
 # Copy only the necessary application code and configuration, excluding tests
 COPY --chown=appuser:appgroup manage.py .
-COPY --chown=appuser:appgroup apps/ ./apps/
+COPY --chown=appuser:appgroup api/ ./api/
 COPY --chown=appuser:appgroup config/ ./config/
 COPY --chown=appuser:appgroup pyproject.toml .
 COPY --chown=appuser:appgroup entrypoint.sh .
@@ -124,7 +140,7 @@ EXPOSE 8000
 
 # Healthcheck using only Python's standard library to avoid extra dependencies
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import sys, urllib.request; sys.exit(0) if urllib.request.urlopen('http://localhost:8000/health').getcode() == 200 else sys.exit(1)"
+    CMD python -c "import sys, urllib.request; sys.exit(0) if urllib.request.urlopen('http://localhost:8000/health/').getcode() == 200 else sys.exit(1)"
 
 # Set the entrypoint script to be executed when the container starts
 ENTRYPOINT ["/app/entrypoint.sh"]
