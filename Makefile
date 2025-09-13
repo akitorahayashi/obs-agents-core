@@ -120,8 +120,8 @@ logs: ## Show and follow dev container logs
 	@$(DEV_COMPOSE) logs -f
 
 .PHONY: shell
-shell: ## Start a shell inside the dev 'web' container
-	@echo "Opening shell in dev web container..."
+shell: ## Start a shell inside the dev 'api' container
+	@echo "Opening shell in dev api container..."
 	@$(DEV_COMPOSE) exec api /bin/bash || \
 		(echo "Failed to open shell. Is the container running? Try 'make up'" && exit 1)
 
