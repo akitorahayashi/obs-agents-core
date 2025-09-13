@@ -49,7 +49,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "rest_framework",
     "corsheaders",
-    "api",
+    "apps.api",
 ]
 
 MIDDLEWARE = [

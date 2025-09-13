@@ -17,9 +17,9 @@ Including another URLconf
 
 from django.urls import include, path
 
-from api.views import health_check
+from apps.api.views import health_check
 
 urlpatterns = [
     path("health/", health_check, name="health_check"),
-    path("api/v1/", include("api.urls")),
+    path("api/v1/", include("apps.api.urls")),
 ]
