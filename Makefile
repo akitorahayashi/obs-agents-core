@@ -122,7 +122,7 @@ logs: ## Show and follow dev container logs
 .PHONY: shell
 shell: ## Start a shell inside the dev 'web' container
 	@echo "Opening shell in dev web container..."
-	@$(DEV_COMPOSE) exec web /bin/bash || \
+	@$(DEV_COMPOSE) exec api /bin/bash || \
 		(echo "Failed to open shell. Is the container running? Try 'make up'" && exit 1)
 
 # ==============================================================================
@@ -131,27 +131,27 @@ shell: ## Start a shell inside the dev 'web' container
 
 .PHONY: makemigrations
 makemigrations: ## [DEV] Create new migration files
-	@$(DEV_COMPOSE) exec web python manage.py makemigrations
+	@$(DEV_COMPOSE) exec api python manage.py makemigrations
 
 .PHONY: migrate
 migrate: ## [DEV] Run database migrations
 	@echo "Running DEV database migrations..."
-	@$(DEV_COMPOSE) exec web python manage.py migrate
+	@$(DEV_COMPOSE) exec api python manage.py migrate
 
 .PHONY: superuser
 superuser: ## [DEV] Create a Django superuser
 	@echo "Creating DEV superuser..."
-	@$(DEV_COMPOSE) exec web python manage.py createsuperuser
+	@$(DEV_COMPOSE) exec api python manage.py createsuperuser
 
 .PHONY: migrate-prod
 migrate-prod: ## [PROD] Run database migrations in production-like environment
 	@echo "Running PROD-like database migrations..."
-	@$(PROD_COMPOSE) exec web python manage.py migrate
+	@$(PROD_COMPOSE) exec api python manage.py migrate
 
 .PHONY: superuser-prod
 superuser-prod: ## [PROD] Create a Django superuser in production-like environment
 	@echo "Creating PROD-like superuser..."
-	@$(PROD_COMPOSE) exec web python manage.py createsuperuser
+	@$(PROD_COMPOSE) exec api python manage.py createsuperuser
 
 # ==============================================================================
 # CODE QUALITY 
@@ -194,7 +194,7 @@ build-test: ## Build Docker image and run smoke tests in clean environment
 	@$(DOCKER_CMD) run --rm \
 		--env-file .env \
 		-v $(CURDIR)/tests:/app/tests \
-		-v $(CURDIR)/apps:/app/apps \
+		-v $(CURDIR)/api:/app/api \
 		-v $(CURDIR)/config:/app/config \
 		-v $(CURDIR)/manage.py:/app/manage.py \
 		-v $(CURDIR)/pyproject.toml:/app/pyproject.toml \

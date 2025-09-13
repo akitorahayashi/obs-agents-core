@@ -48,7 +48,6 @@ def app_container() -> DockerCompose:
 
     # Find the project root by looking for a known file, e.g., pyproject.toml
     project_root = Path(__file__).parent.parent.parent
-    [str(project_root / file) for file in compose_files]
 
     with DockerCompose(
         context=str(project_root),

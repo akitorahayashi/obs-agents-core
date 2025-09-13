@@ -37,4 +37,12 @@ fi
 echo "Starting API server..."
 # System Python has gunicorn installed via Dockerfile, so use it directly
 echo "Using system gunicorn (installed via Dockerfile)"
-exec gunicorn config.wsgi:application --bind 0.0.0.0:8000
+PORT="${PORT:-8000}"
+WORKERS="${GUNICORN_WORKERS:-2}"
+THREADS="${GUNICORN_THREADS:-4}"
+exec gunicorn config.wsgi:application \
+  --bind 0.0.0.0:"${PORT}" \
+  --workers "${WORKERS}" \
+  --threads "${THREADS}" \
+  --access-logfile - \
+  --error-logfile -

@@ -140,7 +140,7 @@ EXPOSE 8000
 
 # Healthcheck using only Python's standard library to avoid extra dependencies
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import sys, urllib.request; sys.exit(0) if urllib.request.urlopen('http://localhost:8000/health').getcode() == 200 else sys.exit(1)"
+    CMD python -c "import sys, urllib.request; sys.exit(0) if urllib.request.urlopen('http://localhost:8000/health/').getcode() == 200 else sys.exit(1)"
 
 # Set the entrypoint script to be executed when the container starts
 ENTRYPOINT ["/app/entrypoint.sh"]
